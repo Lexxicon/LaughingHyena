@@ -7,12 +7,15 @@ import java.awt.Point;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Stack;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import processing.core.PApplet;
+
+import com.biotech.bastard.cards.Action;
 
 /**
  * Created: Aug 23, 2014
@@ -46,10 +49,12 @@ public class Person {
 	private final String name;
 	private Mood mood = Mood.NEUTRAL;
 	private EnumMap<Item, Integer> inventory;
+	private Stack<Action> actionStack;
 
 	public Person(PApplet parrent) {
 		opinions = new LinkedHashMap<>();
 		location = new Point();
+		actionStack = new Stack<Action>();
 		this.inventory = new EnumMap<>(Item.class);
 		this.size = new Point(DIAMITER, DIAMITER);
 		this.parrent = parrent;
@@ -62,6 +67,16 @@ public class Person {
 
 	public void addRelationship(Person person) {
 		getOpinions().put(person, new Opinion());
+	}
+
+	public void addAction(Action action) {
+		actionStack.addElement(action);
+	}
+
+	public void update() {
+		if (actionStack.size() > 0) {
+			actionStack.pop().performAction();
+		}
 	}
 
 	public void draw(int degrees) {
@@ -96,6 +111,10 @@ public class Person {
 
 	public EnumMap<Item, Integer> getInventory() {
 		return inventory;
+	}
+
+	public Stack<Action> getActionStack() {
+		return actionStack;
 	}
 
 	public String[] getDegree(int degree) {

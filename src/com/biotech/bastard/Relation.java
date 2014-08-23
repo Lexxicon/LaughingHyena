@@ -25,14 +25,14 @@ public enum Relation {
 		if (opinion.getAwareness() > 3) {
 			return AQUAINTENCE;
 		}
-		if (opinion.getApproval() > 0) {
+		if (opinion.getApproval() > 0.1) {
 			if (opinion.getApproval() > .75) {
 				return ADDORE;
 			}
 			return LIKES;
 		}
 
-		if (opinion.getApproval() < 0) {
+		if (opinion.getApproval() < 0.1) {
 			if (opinion.getApproval() < -.75) {
 				return HATE;
 			}

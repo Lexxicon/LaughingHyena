@@ -13,6 +13,8 @@ import org.slf4j.LoggerFactory;
 
 import processing.core.PApplet;
 
+import com.biotech.bastard.cards.Action;
+
 /**
  * Created: Aug 23, 2014
  * 
@@ -178,6 +180,14 @@ public class ManipulativeBastard extends PApplet {
 		for (Person person : opinions.keySet()) {
 			translate(0, padding);
 			renderData(person.getName(), opinions.get(person).getRelation().toString());
+		}
+
+		translate(0, padding * 2);
+		text("Action Queue", 0, 0);
+
+		for (Action action : targetPerson.getActionStack()) {
+			translate(0, padding);
+			text(action.getName(), 0, 0);
 		}
 
 		popMatrix();

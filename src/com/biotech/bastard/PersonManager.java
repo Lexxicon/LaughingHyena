@@ -86,6 +86,7 @@ public class PersonManager {
 	 * @return
 	 */
 	public int distanceTo(Person start, Person target) {
+		LOGGER.warn("not working");
 		return -1;
 	}
 

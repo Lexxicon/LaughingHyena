@@ -64,8 +64,9 @@ public class PlayField {
 		return true;
 	}
 
-	public void playCard(Card card, Person[] targets) {
-		card.performAction(targets);
+	public void playCard(Card card, Person target) {
+		LOGGER.info("Playing card {} on {}", card.getName(), target.getName());
+		target.addAction(card.getAction());
 		hand.remove(card);
 		discard.add(card);
 	}
