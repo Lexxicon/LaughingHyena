@@ -37,7 +37,7 @@ public class Person {
 			new Color(255, 255, 255, 010) // gray
 	};
 
-	public static int RADIUS = 30;
+	public static int DIAMITER = 30;
 
 	public static AtomicInteger counter = new AtomicInteger(0);
 
@@ -57,7 +57,7 @@ public class Person {
 		opinions = new LinkedHashMap<>();
 		location = new Point();
 		this.inventory = new EnumMap<>(Item.class);
-		this.size = new Point(RADIUS, RADIUS);
+		this.size = new Point(DIAMITER, DIAMITER);
 		this.parrent = parrent;
 		this.name = Constants.names[counter.incrementAndGet()];
 
@@ -114,7 +114,7 @@ public class Person {
 	}
 
 	public boolean isPointWithin(int x, int y) {
-		if (Math.sqrt(Math.pow(location.x - x, 2) + Math.pow(location.y - y, 2)) < RADIUS / 2) {
+		if (Util.distance(location.x, location.y, x, y) < DIAMITER / 2) {
 			return true;
 		}
 		return false;

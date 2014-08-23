@@ -36,6 +36,7 @@ public class ManipulativeBastard extends PApplet {
 	HashSet<Person> drawnPeople = new HashSet<>();
 	Point center;
 	int radius = 300;
+	PersonManager manager = new PersonManager();
 
 	/*
 	 * @see processing.core.PApplet#setup()
@@ -57,19 +58,47 @@ public class ManipulativeBastard extends PApplet {
 
 		for (int i = 0; i < newPeople.length; i++) {
 			newPeople[i] = new Person(this);
-			float rads = radians(map(i, 0, newPeople.length, 0, 359));
-			newPeople[i].location.x = (int) (Math.sin(rads) * radius + center.x);
-			newPeople[i].location.y = (int) (Math.cos(rads) * radius + center.y);
+			setLocation(newPeople[i], i, newPeople.length, Loc.RANDOM);
 		}
-
 		for (int i = 0; i < newPeople.length; i++) {
 			newPeople[i].getOpinions().put(newPeople[(i + rInt(5) + 1) % newPeople.length],
 					new Opinion());
+
 			newPeople[i].getOpinions().put(newPeople[(i + newPeople.length - rInt(5) - 1) % newPeople.length],
 					new Opinion());
 		}
+		manager.removeOverlap(newPeople, center.x - radius, center.y - radius, radius * 2, radius * 2);
 
 		return newPeople;
+	}
+
+	private static enum Loc {
+		CIRCLE, RANDOM
+	}
+
+	private void setLocation(Person p, int index, int max, Loc l) {
+		switch (l) {
+		case CIRCLE:
+			setLocationCircle(p, index, max);
+			break;
+		case RANDOM:
+			setLocationRandom(p);
+			break;
+		default:
+			break;
+
+		}
+	}
+
+	private void setLocationRandom(Person p) {
+		p.location.x = (int) (random(-radius / 2, radius / 2) + center.x);
+		p.location.y = (int) (random(-radius / 2, radius / 2) + center.y);
+	}
+
+	private void setLocationCircle(Person p, int index, int max) {
+		float rads = radians(map(index, 0, max, 0, 359));
+		p.location.x = (int) (Math.sin(rads) * radius + center.x);
+		p.location.y = (int) (Math.cos(rads) * radius + center.y);
 	}
 
 	public int rInt(int upper) {
@@ -87,10 +116,9 @@ public class ManipulativeBastard extends PApplet {
 				break;
 			}
 		}
+
 		redraw();
 	}
-
-	int i = 0;
 
 	/*
 	 * @see processing.core.PApplet#draw()
@@ -123,7 +151,6 @@ public class ManipulativeBastard extends PApplet {
 
 	public void drawSelectedInfo(int x, int y) {
 		int padding = 15;
-		int dataPadding = 100;
 		int w = 300;
 		int h = 400;
 		String[] names = {};

@@ -3,6 +3,9 @@
  */
 package com.biotech.bastard;
 
+import java.awt.Point;
+import java.util.ArrayList;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -84,5 +87,46 @@ public class PersonManager {
 	 */
 	public int distanceTo(Person start, Person target) {
 		return -1;
+	}
+
+	public void removeOverlap(Person[] persons, int x, int y, int w, int h) {
+		boolean stillOverlap = true;
+
+		ArrayList<Person> overlapping = new ArrayList<>();
+		int breakout = 0;
+		while (stillOverlap && breakout < 15) {
+			breakout++;
+			stillOverlap = false;
+			for (int i = 0; i < persons.length; i++) {
+				overlapping.clear();
+				Point firstPerson = persons[i].location;
+				for (int j = i + 1; j < persons.length; j++) {
+					Point secondPerson = persons[j].location;
+
+					if (Util.distance(firstPerson.x, firstPerson.y, secondPerson.x, secondPerson.y) < Person.DIAMITER) {
+						stillOverlap = true;
+						overlapping.add(persons[j]);
+					}
+				}
+				for (Person over : overlapping) {
+					float deltaX, deltaY;
+					deltaX = over.location.x - firstPerson.x;
+					deltaY = over.location.y - firstPerson.y;
+
+					float rads = (float) Math.atan2(deltaY, deltaX);
+					if (!Float.isNaN(rads)) {
+						float distace = Util.distance(firstPerson.x, firstPerson.y, over.location.x, over.location.y);
+						distace *= 2;
+						over.location.x = (int) (Util.clamp(over.location.x
+								+ (float) (Math.cos(rads) * distace), x, x + w));
+						over.location.y = (int) (Util.clamp(over.location.y
+								+ (float) (Math.sin(rads) * distace), y, y + h));
+					}
+				}
+			}
+		}
+		if (stillOverlap) {
+			LOGGER.info("Broke out after Iterations {}", breakout);
+		}
 	}
 }
