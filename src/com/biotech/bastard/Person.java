@@ -26,18 +26,12 @@ public class Person {
 
 	public static final Color border = new Color(255, 255, 255);
 
-	public static final Color[] heatColor = {
-			new Color(255, 255, 255, 255), // bright red
-			new Color(255, 255, 255, 200),
-			new Color(255, 255, 255, 150),
-			new Color(255, 255, 255, 100),
-			new Color(255, 255, 255, 075),
-			new Color(255, 255, 255, 050),
-			new Color(255, 255, 255, 025),
-			new Color(255, 255, 255, 010) // gray
-	};
+	public static final Color[] heatColor = Color.createGradiant(
+			new Color(255, 255, 255, 255),
+			new Color(050, 250, 250, 015),
+			10);
 
-	public static int DIAMITER = 30;
+	public static int DIAMITER = 50;
 
 	public static AtomicInteger counter = new AtomicInteger(0);
 
@@ -77,16 +71,17 @@ public class Person {
 		parrent.fill(fill.r, fill.g, fill.b, fill.a);
 		parrent.stroke(border.r, border.b, border.g, border.a);
 		parrent.ellipse(location.x, location.y, size.x, size.y);
-
-		parrent.fill(255, 255, 255);
-
-		// parrent.text(degrees, location.x, location.y);
 	}
 
-	public void lineToChildren() {
+	public void drawOpinionLines() {
 		Color fill = heatColor[Math.min(distance, heatColor.length - 1)];
 		parrent.stroke(fill.r, fill.b, fill.g, fill.a);
 		for (Person child : getOpinions().keySet()) {
+			int r = (int) PApplet.map(opinions.get(child).getApproval(), -1, 1, 255, 0);
+			int b = (int) PApplet.map(opinions.get(child).getApproval(), -1, 1, 0, 255);
+			float a = PApplet.map(PApplet.constrain(opinions.get(child).getAwareness(), 1, 7), 1, 7, 255, 0);
+
+			parrent.stroke(r, Math.min(r, b), b, a);
 			parrent.line(location.x, location.y, child.location.x, child.location.y);
 		}
 	}

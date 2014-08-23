@@ -5,6 +5,7 @@ package com.biotech.bastard;
 
 import java.awt.Point;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Stack;
 
 import org.slf4j.Logger;
@@ -46,7 +47,7 @@ public class ManipulativeBastard extends PApplet {
 		LOGGER.info("Setting up application");
 		size(1200, 800);
 		center = new Point(600, 400);
-		people = makePeople(45);
+		people = makePeople(70);
 		targetPerson = people[0];
 		noLoop();
 		smooth();
@@ -62,10 +63,10 @@ public class ManipulativeBastard extends PApplet {
 		}
 		for (int i = 0; i < newPeople.length; i++) {
 			newPeople[i].getOpinions().put(newPeople[(i + rInt(5) + 1) % newPeople.length],
-					new Opinion());
+					new Opinion(random(-1, 1), 1));
 
 			newPeople[i].getOpinions().put(newPeople[(i + newPeople.length - rInt(5) - 1) % newPeople.length],
-					new Opinion());
+					new Opinion(random(-1, 1), 1));
 		}
 		manager.removeOverlap(newPeople, center.x - radius, center.y - radius, radius * 2, radius * 2);
 
@@ -91,8 +92,8 @@ public class ManipulativeBastard extends PApplet {
 	}
 
 	private void setLocationRandom(Person p) {
-		p.location.x = (int) (random(-radius / 2, radius / 2) + center.x);
-		p.location.y = (int) (random(-radius / 2, radius / 2) + center.y);
+		p.location.x = (int) (random(-radius, radius) + center.x);
+		p.location.y = (int) (random(-radius, radius) + center.y);
 	}
 
 	private void setLocationCircle(Person p, int index, int max) {
@@ -128,6 +129,7 @@ public class ManipulativeBastard extends PApplet {
 		background(0);
 		drawnPeople.clear();
 
+		targetPerson.drawOpinionLines();
 		drawPerson(targetPerson);
 
 		drawSelectedInfo(width - 200, 0);
@@ -140,9 +142,6 @@ public class ManipulativeBastard extends PApplet {
 			pep.setDistance(Integer.MAX_VALUE);
 		}
 		updateDistance(person);
-		for (Person pep : people) {
-			pep.lineToChildren();
-		}
 
 		for (Person pep : people) {
 			pep.draw(pep.getDistance());
@@ -153,7 +152,6 @@ public class ManipulativeBastard extends PApplet {
 		int padding = 15;
 		int w = 300;
 		int h = 400;
-		String[] names = {};
 
 		pushMatrix();
 		translate(x, y);
@@ -174,13 +172,12 @@ public class ManipulativeBastard extends PApplet {
 
 		translate(0, padding * 2);
 
-		text("First Dregree", 0, 0);
+		text("Relationship", 0, 0);
 
-		translate(padding, 0);
-		names = targetPerson.getDegree(1);
-		for (int i = 0; i < names.length; i++) {
+		Map<Person, Opinion> opinions = targetPerson.getOpinions();
+		for (Person person : opinions.keySet()) {
 			translate(0, padding);
-			text(names[i], 0, 0);
+			renderData(person.getName(), opinions.get(person).getRelation().toString());
 		}
 
 		popMatrix();
@@ -188,7 +185,7 @@ public class ManipulativeBastard extends PApplet {
 	}
 
 	private void renderData(String name, String value) {
-		int dataPadding = 100;
+		int dataPadding = 70;
 		text(name + ":", 0, 0);
 		pushMatrix();
 		translate(dataPadding, 0);

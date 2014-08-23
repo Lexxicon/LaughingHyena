@@ -116,7 +116,7 @@ public class PersonManager {
 					float rads = (float) Math.atan2(deltaY, deltaX);
 					if (!Float.isNaN(rads)) {
 						float distace = Util.distance(firstPerson.x, firstPerson.y, over.location.x, over.location.y);
-						distace *= 2;
+						distace *= 1.5;
 						over.location.x = (int) (Util.clamp(over.location.x
 								+ (float) (Math.cos(rads) * distace), x, x + w));
 						over.location.y = (int) (Util.clamp(over.location.y

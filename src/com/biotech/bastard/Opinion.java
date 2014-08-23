@@ -21,6 +21,15 @@ public class Opinion {
 	 */
 	private int awareness = Integer.MAX_VALUE;
 
+	public Opinion() {
+
+	}
+
+	public Opinion(float approval, int awareness) {
+		setApproval(approval);
+		setAwareness(awareness);
+	}
+
 	/**
 	 * Adjusts this opinion based on the opinion of the source and the sources
 	 * opinion of the target
@@ -61,5 +70,9 @@ public class Opinion {
 
 	public void setAwareness(int awareness) {
 		this.awareness = awareness;
+	}
+
+	public Relation getRelation() {
+		return Relation.fromOpinion(this);
 	}
 }
