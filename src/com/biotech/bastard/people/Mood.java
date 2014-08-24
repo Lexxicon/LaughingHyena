@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.biotech.bastard;
+package com.biotech.bastard.people;
 
 /**
  * Created: Aug 23, 2014

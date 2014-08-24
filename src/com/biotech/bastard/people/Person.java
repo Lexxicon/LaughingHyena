@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.biotech.bastard;
+package com.biotech.bastard.people;
 
 import java.awt.Point;
 import java.util.EnumMap;
@@ -15,6 +15,9 @@ import org.slf4j.LoggerFactory;
 
 import processing.core.PApplet;
 
+import com.biotech.bastard.Color;
+import com.biotech.bastard.Constants;
+import com.biotech.bastard.Util;
 import com.biotech.bastard.cards.Action;
 
 /**
@@ -25,13 +28,14 @@ import com.biotech.bastard.cards.Action;
  */
 public class Person {
 
+	@SuppressWarnings("unused")
 	private static transient final Logger LOGGER = LoggerFactory.getLogger(Person.class);
 
 	public static final Color border = new Color(255, 255, 255);
 
 	public static final Color[] heatColor = Color.createGradiant(
 			new Color(255, 255, 255, 255),
-			new Color(050, 250, 250, 015),
+			new Color(250, 250, 250, 000),
 			10);
 
 	public static int DIAMITER = 50;
@@ -45,8 +49,6 @@ public class Person {
 	Point size;
 
 	final private Map<Person, Opinion> opinions;
-
-	private int distance;
 
 	private final String name;
 	private Mood mood = Mood.NEUTRAL;
@@ -77,7 +79,11 @@ public class Person {
 
 	public void update() {
 		if (actionStack.size() > 0) {
-			actionStack.pop().performAction();
+			Action action = actionStack.pop();
+
+			if (action.validAction(this)) {
+				action.performAction(this);
+			}
 		}
 	}
 
@@ -91,12 +97,10 @@ public class Person {
 	}
 
 	public void drawOpinionLines() {
-		Color fill = heatColor[Math.min(distance, heatColor.length - 1)];
-		parrent.stroke(fill.r, fill.b, fill.g, fill.a);
 		for (Person child : getOpinions().keySet()) {
 			int r = (int) PApplet.map(opinions.get(child).getApproval(), -1, 1, 255, 0);
 			int b = (int) PApplet.map(opinions.get(child).getApproval(), -1, 1, 0, 255);
-			float a = PApplet.map(PApplet.constrain(opinions.get(child).getAwareness(), 1, 7), 1, 7, 255, 0);
+			float a = 255;
 
 			parrent.stroke(r, Math.min(r, b), b, a);
 			parrent.line(getLocation().x, getLocation().y, child.getLocation().x, child.getLocation().y);
@@ -109,6 +113,10 @@ public class Person {
 
 	public Mood getMood() {
 		return mood;
+	}
+
+	public void setMood(Mood mood) {
+		this.mood = mood;
 	}
 
 	public EnumMap<Item, Integer> getInventory() {
@@ -134,14 +142,6 @@ public class Person {
 			return true;
 		}
 		return false;
-	}
-
-	public int getDistance() {
-		return distance;
-	}
-
-	public void setDistance(int distance) {
-		this.distance = distance;
 	}
 
 	public Map<Person, Opinion> getOpinions() {

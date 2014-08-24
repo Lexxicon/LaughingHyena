@@ -3,9 +3,6 @@
  */
 package com.biotech.bastard.animations;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import processing.core.PApplet;
 
 import com.biotech.bastard.Color;
@@ -17,8 +14,6 @@ import com.biotech.bastard.Color;
  *
  */
 public class SelectionPing extends Animation {
-
-	private static transient final Logger LOGGER = LoggerFactory.getLogger(SelectionPing.class);
 
 	private int startDiameter, targetDiameter;
 	private Color firstColor, secondColor;

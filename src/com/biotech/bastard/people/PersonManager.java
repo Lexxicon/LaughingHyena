@@ -1,13 +1,22 @@
 /**
  * 
  */
-package com.biotech.bastard;
+package com.biotech.bastard.people;
 
 import java.awt.Point;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.Random;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import processing.core.PApplet;
+
+import com.biotech.bastard.Util;
+import com.biotech.bastard.actions.Inform;
+import com.biotech.bastard.actions.Introduce;
+import com.biotech.bastard.cards.Action;
 
 /**
  * Created: Aug 23, 2014
@@ -18,6 +27,18 @@ import org.slf4j.LoggerFactory;
 public class PersonManager {
 
 	private static transient final Logger LOGGER = LoggerFactory.getLogger(PersonManager.class);
+	private Action[] availableActions = { new Inform(), new Introduce() };
+	Random r = new Random();
+
+	public void updatePeople(Person[] people) {
+		for (Person p : people) {
+			int offset = new Random().nextInt(availableActions.length);
+			if (r.nextDouble() > .75 && availableActions[offset].validAction(p)) {
+				p.addAction(availableActions[offset]);
+			}
+			p.update();
+		}
+	}
 
 	/**
 	 * Cause the listener to become aware of the target at degree + 1 of the
@@ -28,6 +49,7 @@ public class PersonManager {
 	 * @param target
 	 */
 	public void inform(Person listener, Person teller, Person target) {
+		LOGGER.info("informing {} about {}", listener.getName(), target.getName());
 		Opinion listenerOfTeller = listener.getOpinions().get(teller);
 		Opinion listenerOfTarget = listener.getOpinions().get(target);
 		Opinion tellerOfTarget = teller.getOpinions().get(target);
@@ -35,9 +57,16 @@ public class PersonManager {
 			listenerOfTarget = new Opinion();
 			listener.getOpinions().put(target, listenerOfTarget);
 		}
+		if (listenerOfTeller == null) {
+			listenerOfTeller = new Opinion();
+			listenerOfTeller.setApproval(tellerOfTarget.getApproval());
+			listenerOfTeller.setAwareness(teller.getOpinions().get(listener).getAwareness() + 2);
+			listener.getOpinions().put(teller, listenerOfTeller);
+		}
 		if (listenerOfTeller != null && tellerOfTarget != null) {
 			listenerOfTarget.influence(listenerOfTeller, tellerOfTarget);
 		}
+
 	}
 
 	/**
@@ -58,9 +87,14 @@ public class PersonManager {
 		Opinion commonOfFirst = common.getOpinions().get(first);
 		Opinion commonOfSecond = common.getOpinions().get(second);
 
-		if (firstOfCommon == null || secondOfCommon == null) {
-			LOGGER.debug("Failed to introduce, one does not know common");
-			return;
+		if (firstOfCommon == null) {
+			firstOfCommon = new Opinion(0, 3);
+			first.getOpinions().put(common, firstOfCommon);
+		}
+
+		if (secondOfCommon == null) {
+			secondOfCommon = new Opinion(0, 3);
+			second.getOpinions().put(common, secondOfCommon);
 		}
 
 		if (firstOfSecond == null) {
@@ -79,7 +113,7 @@ public class PersonManager {
 
 	/**
 	 * Returns how many degrees of separation between the start and the target.
-	 * -1 if unreachable
+	 * MAX Integer if unreachable
 	 * 
 	 * @param start
 	 * @param target
@@ -87,10 +121,77 @@ public class PersonManager {
 	 */
 	public int distanceTo(Person start, Person target) {
 		LOGGER.warn("not working");
-		return -1;
+
+		return Integer.MAX_VALUE;
 	}
 
-	public void removeOverlap(Person[] persons, int x, int y, int w, int h) {
+	public void drawPerson(PApplet parent, Person person) {
+		person.draw(0);
+		for (Person relation : person.getOpinions().keySet()) {
+			int awareness = person.getOpinions().get(relation).getAwareness();
+			if (awareness < Integer.MAX_VALUE) {
+				relation.draw(awareness);
+			}
+		}
+	}
+
+	public void drawInfoPane(PApplet p, int x, int y, Person targetPerson) {
+		int padding = 15;
+		int w = 200;
+		int h = 400;
+
+		p.pushMatrix();
+		{
+			p.translate(x, y);
+			p.stroke(255);
+			p.fill(025);
+			p.rect(0, 0, w, h);
+			p.fill(255);
+			p.pushMatrix();
+			{
+				p.translate(padding, padding);
+				renderData(p, "Name", targetPerson.getName());
+				p.translate(0, padding);
+				renderData(p, "Mood", targetPerson.getMood().toString());
+
+				for (Item item : targetPerson.getInventory().keySet()) {
+					p.translate(0, padding);
+					renderData(p, item.toString(), targetPerson.getInventory().get(item).toString());
+				}
+
+				p.translate(0, padding * 2);
+
+				p.text("Relationship", 0, 0);
+
+				Map<Person, Opinion> opinions = targetPerson.getOpinions();
+				for (Person person : opinions.keySet()) {
+					p.translate(0, padding);
+					renderData(p, person.getName(), opinions.get(person).getRelation().toString());
+				}
+
+				p.translate(0, padding * 2);
+				p.text("Action Queue", 0, 0);
+
+				for (Action action : targetPerson.getActionStack()) {
+					p.translate(0, padding);
+					p.text(action.getName(), 0, 0);
+				}
+			}
+			p.popMatrix();
+		}
+		p.popMatrix();
+	}
+
+	private void renderData(PApplet p, String name, String value) {
+		int dataPadding = 70;
+		p.text(name + ":", 0, 0);
+		p.pushMatrix();
+		p.translate(dataPadding, 0);
+		p.text(value, 0, 0);
+		p.popMatrix();
+	}
+
+	public boolean removeOverlap(Person[] persons, int x, int y, int w, int h) {
 		boolean stillOverlap = true;
 
 		ArrayList<Person> overlapping = new ArrayList<>();
@@ -116,7 +217,11 @@ public class PersonManager {
 
 					float rads = (float) Math.atan2(deltaY, deltaX);
 					if (!Float.isNaN(rads)) {
-						float distace = Util.distance(firstPerson.x, firstPerson.y, over.getLocation().x, over.getLocation().y);
+						float distace = Util.distance(
+								firstPerson.x,
+								firstPerson.y,
+								over.getLocation().x,
+								over.getLocation().y);
 						distace *= 1.5;
 						over.getLocation().x = (int) (Util.clamp(over.getLocation().x
 								+ (float) (Math.cos(rads) * distace), x, x + w));
@@ -129,5 +234,7 @@ public class PersonManager {
 		if (stillOverlap) {
 			LOGGER.info("Broke out after Iterations {}", breakout);
 		}
+
+		return stillOverlap;
 	}
 }

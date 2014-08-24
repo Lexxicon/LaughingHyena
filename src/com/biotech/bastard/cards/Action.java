@@ -6,7 +6,7 @@ package com.biotech.bastard.cards;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.biotech.bastard.Person;
+import com.biotech.bastard.people.Person;
 
 /**
  * Created: Aug 23, 2014
@@ -18,33 +18,27 @@ public abstract class Action {
 
 	private static transient final Logger LOGGER = LoggerFactory.getLogger(Action.class);
 
-	private String name;
-
-	private String description;
-
 	/**
 	 * 
 	 */
-	public abstract void performAction();
+	public abstract void performAction(Person person);
 
 	public abstract boolean validAction(Person person);
+
+	public boolean needsTarget() {
+		return true;
+	}
+
+	public Person[] targets() {
+		return new Person[0];
+	}
 
 	/**
 	 * @return
 	 */
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
+	public abstract String getName();
 
 	public String getDescription() {
-		return description;
-	}
-
-	public void setDescription(String description) {
-		this.description = description;
-	}
+		return getName() + " has no description";
+	};
 }

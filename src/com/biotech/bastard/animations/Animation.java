@@ -18,7 +18,6 @@ import processing.core.PApplet;
  */
 public abstract class Animation {
 
-	@SuppressWarnings("unused")
 	private static transient final Logger LOGGER = LoggerFactory.getLogger(Animation.class);
 
 	private boolean isDone = true;

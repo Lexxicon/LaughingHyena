@@ -11,7 +11,9 @@ import java.util.Stack;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.biotech.bastard.Person;
+import processing.core.PApplet;
+
+import com.biotech.bastard.people.Person;
 
 /**
  * Created: Aug 23, 2014
@@ -64,11 +66,26 @@ public class PlayField {
 		return true;
 	}
 
+	public void renderHand(PApplet p, int x, int y) {
+		p.pushMatrix();
+		p.pushStyle();
+		int offset = 0;
+		for (Card c : getHand()) {
+			c.setX(x);
+			c.setY(y + offset);
+			c.draw();
+			offset += c.getFrame().height + 15;
+		}
+		p.popMatrix();
+		p.popStyle();
+	}
+
 	public void playCard(Card card, Person target) {
 		LOGGER.info("Playing card {} on {}", card.getName(), target.getName());
 		target.addAction(card.getAction());
 		hand.remove(card);
 		discard.add(card);
+		drawCard();
 	}
 
 	public void removeCard(Card card) {

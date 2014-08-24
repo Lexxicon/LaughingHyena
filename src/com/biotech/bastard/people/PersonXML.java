@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.biotech.bastard;
+package com.biotech.bastard.people;
 
 import javax.xml.bind.annotation.XmlRootElement;
 

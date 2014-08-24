@@ -4,11 +4,10 @@
 package com.biotech.bastard;
 
 import java.awt.Point;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Stack;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +16,13 @@ import processing.core.PApplet;
 
 import com.biotech.bastard.animations.Animation;
 import com.biotech.bastard.animations.SelectionPing;
-import com.biotech.bastard.cards.Action;
+import com.biotech.bastard.cards.Card;
+import com.biotech.bastard.cards.Deck;
+import com.biotech.bastard.cards.PlayField;
+import com.biotech.bastard.people.Opinion;
+import com.biotech.bastard.people.Person;
+import com.biotech.bastard.people.PersonManager;
+import com.biotech.bastard.ui.ScreenHotspot;
 
 /**
  * Created: Aug 23, 2014
@@ -38,13 +43,28 @@ public class ManipulativeBastard extends PApplet {
 		PApplet.main(new String[] { "com.biotech.bastard.ManipulativeBastard" });
 	}
 
+	public static final Color WHITE = new Color(255, 255, 255, 255);
+	public static final Color RED = new Color(255, 0, 0, 255);
+	public static final Color GREEN = new Color(0, 255, 0, 255);
+	public static final Color BLUE = new Color(0, 0, 255, 255);
+
+	// used to ensure mouse handling;
+	boolean mPress, lPress, rPress;
+
+	GameState state = GameState.INSPECT;
+
+	Card selectedCard = null;
+
 	Person[] people;
 	Person targetPerson;
 	HashSet<Person> drawnPeople = new HashSet<>();
 	Point center;
 	int radius = 300;
+
+	PlayField field = new PlayField();
 	PersonManager manager = new PersonManager();
-	List<Animation> animations = new ArrayList<>();
+	List<Animation> animations = new CopyOnWriteArrayList<>();
+	List<ScreenHotspot> hostspots = new CopyOnWriteArrayList<>();
 
 	SelectionPing selectionPing;
 
@@ -61,12 +81,21 @@ public class ManipulativeBastard extends PApplet {
 		targetPerson = people[0];
 		selectionPing = new SelectionPing(this,
 				35, 50, 90,
-				new Color(255, 255, 255, 255),
+				WHITE,
 				new Color(200, 200, 150, 150));
 
 		animations.add(selectionPing);
-		updatePeople();
+		for (Card c : buildDeck()) {
+			field.addCardToDeck(c);
+		}
+		for (int i = 0; i < 5; i++) {
+			field.drawCard();
+		}
 		smooth();
+	}
+
+	private List<Card> buildDeck() {
+		return new Deck(this).cards;
 	}
 
 	private Person[] makePeople(int numberToMake) {
@@ -78,13 +107,19 @@ public class ManipulativeBastard extends PApplet {
 			setLocation(newPeople[i], i, newPeople.length, Loc.RANDOM);
 		}
 		for (int i = 0; i < newPeople.length; i++) {
-			newPeople[i].getOpinions().put(newPeople[(i + rInt(5) + 1) % newPeople.length],
-					new Opinion(random(-1, 1), 1));
-
-			newPeople[i].getOpinions().put(newPeople[(i + newPeople.length - rInt(5) - 1) % newPeople.length],
-					new Opinion(random(-1, 1), 1));
+			int knowns = (int) random(3, 8);
+			for (int j = 0; j < knowns; j++) {
+				int personId = rInt(newPeople.length);
+				if (personId != i) {
+					newPeople[i].getOpinions().put(newPeople[personId], new Opinion(random(-1, 1), rInt(6) + 1));
+				}
+			}
 		}
-		manager.removeOverlap(newPeople, center.x - radius, center.y - radius, radius * 2, radius * 2);
+		while (manager.removeOverlap(newPeople, center.x - radius, center.y - radius, radius * 2, radius * 2)) {
+			for (int i = 0; i < newPeople.length; i++) {
+				setLocation(newPeople[i], i, newPeople.length, Loc.RANDOM);
+			}
+		}
 
 		return newPeople;
 	}
@@ -127,6 +162,61 @@ public class ManipulativeBastard extends PApplet {
 	 */
 	@Override
 	public void mouseClicked() {
+		switch (state) {
+		case INSPECT:
+			if (!selectPerson()) {
+				if (selectCard()) {
+					if (selectedCard.needsTarget()) {
+						state = GameState.TARGET;
+					}
+				}
+			}
+			break;
+		case TARGET:
+			state = GameState.INSPECT;
+			if (selectPerson()) {
+				field.playCard(selectedCard, targetPerson);
+				manager.updatePeople(people);
+			}
+			Card.selected = null;
+			selectedCard = null;
+			break;
+		default:
+			break;
+		}
+		handleHS();
+	}
+
+	/*
+	 * @see processing.core.PApplet#mouseMoved()
+	 */
+	@Override
+	public void mouseMoved() {
+		handleHS();
+	}
+
+	private void handleHS() {
+		for (ScreenHotspot hs : hostspots) {
+			hs.handle(mouseX, mouseY, mousePressed && mouseButton == LEFT, mPress && mouseButton == RIGHT);
+		}
+	}
+
+	/**
+	 * 
+	 */
+	private boolean selectCard() {
+		for (Card c : field.getHand()) {
+			if (c.getFrame().contains(mouseX, mouseY)) {
+				selectedCard = c;
+				Card.selected = c;
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public boolean selectPerson() {
+
 		for (Person pep : people) {
 			if (pep.isPointWithin(mouseX, mouseY)) {
 				if (pep != targetPerson) {
@@ -134,17 +224,22 @@ public class ManipulativeBastard extends PApplet {
 					selectionPing.restart();
 				}
 				targetPerson = pep;
-				break;
+				return true;
 			}
 		}
-		updatePeople();
+		return false;
 	}
 
-	private void updatePeople() {
-		for (Person pep : people) {
-			pep.setDistance(Integer.MAX_VALUE);
-		}
-		updateDistance(targetPerson);
+	/*
+	 * @see processing.core.PApplet#mousePressed()
+	 */
+	@Override
+	public void mousePressed() {
+		// TODO Auto-generated method stub
+		super.mousePressed();
+		mPress = true;
+		lPress = mouseButton == LEFT;
+		rPress = mouseButton == RIGHT;
 	}
 
 	/*
@@ -154,75 +249,28 @@ public class ManipulativeBastard extends PApplet {
 	public void draw() {
 		background(0);
 		drawnPeople.clear();
+
 		for (Animation a : animations) {
 			a.draw();
 		}
 
 		targetPerson.drawOpinionLines();
-		drawPerson(targetPerson);
-
-		drawSelectedInfo(width - 200, 0);
-
-	}
-
-	private void drawPerson(Person person) {
-
-		for (Person pep : people) {
-			pep.draw(pep.getDistance());
-		}
-	}
-
-	public void drawSelectedInfo(int x, int y) {
-		int padding = 15;
-		int w = 300;
-		int h = 400;
-
-		pushMatrix();
-		translate(x, y);
-		stroke(255);
-		fill(025);
-		rect(0, 0, w, h);
-		fill(255);
-		pushMatrix();
-		translate(padding, padding);
-		renderData("Name", targetPerson.getName());
-		translate(0, padding);
-		renderData("Mood", targetPerson.getMood().toString());
-
-		for (Item item : targetPerson.getInventory().keySet()) {
-			translate(0, padding);
-			renderData(item.toString(), targetPerson.getInventory().get(item).toString());
+		for (Person person : people) {
+			person.draw(Integer.MAX_VALUE);
 		}
 
-		translate(0, padding * 2);
+		manager.drawPerson(this, targetPerson);
+		manager.drawInfoPane(this, width - 200, 0, targetPerson);
 
-		text("Relationship", 0, 0);
-
-		Map<Person, Opinion> opinions = targetPerson.getOpinions();
-		for (Person person : opinions.keySet()) {
-			translate(0, padding);
-			renderData(person.getName(), opinions.get(person).getRelation().toString());
+		for (ScreenHotspot hs : hostspots) {
+			hs.draw(this);
 		}
 
-		translate(0, padding * 2);
-		text("Action Queue", 0, 0);
+		field.renderHand(this, 15, 100);
 
-		for (Action action : targetPerson.getActionStack()) {
-			translate(0, padding);
-			text(action.getName(), 0, 0);
-		}
-
-		popMatrix();
-		popMatrix();
-	}
-
-	private void renderData(String name, String value) {
-		int dataPadding = 70;
-		text(name + ":", 0, 0);
-		pushMatrix();
-		translate(dataPadding, 0);
-		text(value, 0, 0);
-		popMatrix();
+		mPress = false;
+		lPress = false;
+		rPress = false;
 	}
 
 	private void updateDistance(Person person) {
@@ -237,7 +285,11 @@ public class ManipulativeBastard extends PApplet {
 		while (walkingPoint != finalPoint) {
 			// set the newley added persons.
 			for (int i = finalPoint; i < walkingPoint; i++) {
-				persons.get(i).setDistance(pass);
+
+				// the person at index i is a distance of pass from the input
+				// person
+
+				// persons.get(i).setDistance(pass);
 				// attempt to add all children if they haven't been added
 				// already
 				for (Person child : persons.get(i).getOpinions().keySet()) {
