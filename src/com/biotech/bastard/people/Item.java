@@ -10,7 +10,7 @@ package com.biotech.bastard.people;
  *
  */
 public enum Item {
-	WEAPON("Weapons"), DRUG("Drugs"), GIFT("Gifts");
+	WEAPON("Weapons");// , DRUG("Drugs"), GIFT("Gifts");
 
 	private final String displayName;
 

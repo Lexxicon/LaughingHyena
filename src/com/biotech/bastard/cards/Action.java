@@ -6,6 +6,9 @@ package com.biotech.bastard.cards;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import processing.core.PApplet;
+
+import com.biotech.bastard.animations.Animation;
 import com.biotech.bastard.people.Person;
 
 /**
@@ -24,6 +27,8 @@ public abstract class Action {
 	public abstract void performAction(Person person);
 
 	public abstract boolean validAction(Person person);
+
+	public abstract Animation getAnimation(PApplet p, Person person);
 
 	public boolean needsTarget() {
 		return true;

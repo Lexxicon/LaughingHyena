@@ -17,6 +17,7 @@ import processing.core.PApplet;
 
 import com.biotech.bastard.Color;
 import com.biotech.bastard.Constants;
+import com.biotech.bastard.ManipulativeBastard;
 import com.biotech.bastard.Util;
 import com.biotech.bastard.cards.Action;
 
@@ -34,7 +35,7 @@ public class Person {
 	public static final Color border = new Color(255, 255, 255);
 
 	public static final Color[] heatColor = Color.createGradiant(
-			new Color(255, 255, 255, 255),
+			new Color(128, 75, 165, 255),
 			new Color(250, 250, 250, 000),
 			10);
 
@@ -70,14 +71,23 @@ public class Person {
 	}
 
 	public void addRelationship(Person person) {
+		if (mood == Mood.DEAD) {
+			return;
+		}
 		getOpinions().put(person, new Opinion());
 	}
 
 	public void addAction(Action action) {
+		if (mood == Mood.DEAD) {
+			return;
+		}
 		actionStack.addElement(action);
 	}
 
 	public void update() {
+		if (mood == Mood.DEAD) {
+			return;
+		}
 		if (actionStack.size() > 0) {
 			Action action = actionStack.pop();
 
@@ -94,14 +104,38 @@ public class Person {
 		parrent.fill(fill.r, fill.g, fill.b, fill.a);
 		parrent.stroke(border.r, border.b, border.g, border.a);
 		parrent.ellipse(getLocation().x, getLocation().y, size.x, size.y);
+		parrent.image(ManipulativeBastard.moodIcon.get(mood), getLocation().x, getLocation().y);
+	}
+
+	public void drawNames() {
+
+		parrent.fill(255, 255, 255, 255);
+		parrent.stroke(255, 255, 255, 255);
+		parrent.text(name, getLocation().x - parrent.textWidth(name) / 2, getLocation().y);
+		for (Person child : getOpinions().keySet()) {
+			parrent.text(
+					child.getName(),
+					child.getLocation().x - parrent.textWidth(child.name) / 2,
+					child.getLocation().y);
+		}
+	}
+
+	public void highlight() {
+		parrent.pushStyle();
+		parrent.stroke(0, 0);
+		parrent.fill(255, 255, 255, Math.abs((parrent.frameCount % 512) - 256));
+		parrent.ellipse(getLocation().x, getLocation().y, DIAMITER + 10, DIAMITER + 10);
+		parrent.popStyle();
 	}
 
 	public void drawOpinionLines() {
+		if (mood == Mood.DEAD) {
+			return;
+		}
 		for (Person child : getOpinions().keySet()) {
 			int r = (int) PApplet.map(opinions.get(child).getApproval(), -1, 1, 255, 0);
 			int b = (int) PApplet.map(opinions.get(child).getApproval(), -1, 1, 0, 255);
 			float a = 255;
-
 			parrent.stroke(r, Math.min(r, b), b, a);
 			parrent.line(getLocation().x, getLocation().y, child.getLocation().x, child.getLocation().y);
 		}
@@ -116,7 +150,13 @@ public class Person {
 	}
 
 	public void setMood(Mood mood) {
+		if (this.mood == Mood.DEAD) {
+			return;
+		}
 		this.mood = mood;
+		if (this.mood == Mood.DEAD) {
+			opinions.clear();
+		}
 	}
 
 	public EnumMap<Item, Integer> getInventory() {

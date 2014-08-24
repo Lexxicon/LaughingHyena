@@ -5,6 +5,7 @@ package com.biotech.bastard.people;
 
 import java.awt.Point;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.Map;
 import java.util.Random;
 
@@ -14,8 +15,10 @@ import org.slf4j.LoggerFactory;
 import processing.core.PApplet;
 
 import com.biotech.bastard.Util;
+import com.biotech.bastard.actions.ChangeMood;
 import com.biotech.bastard.actions.Inform;
 import com.biotech.bastard.actions.Introduce;
+import com.biotech.bastard.actions.Murder;
 import com.biotech.bastard.cards.Action;
 
 /**
@@ -27,16 +30,39 @@ import com.biotech.bastard.cards.Action;
 public class PersonManager {
 
 	private static transient final Logger LOGGER = LoggerFactory.getLogger(PersonManager.class);
-	private Action[] availableActions = { new Inform(), new Introduce() };
+	private Map<Mood, Action[]> availableActions = new EnumMap<>(Mood.class);
 	Random r = new Random();
+
+	/**
+	 * 
+	 */
+	public PersonManager() {
+		for (Mood m : Mood.values()) {
+			availableActions.put(m, new Action[0]);
+		}
+
+		availableActions
+				.put(Mood.ANGRY, new Action[] { new Inform(), new Introduce(), new ChangeMood() });
+		availableActions
+				.put(Mood.HAPPY, new Action[] { new Inform(), new Introduce(), new ChangeMood() });
+		availableActions
+				.put(Mood.DEAD, new Action[] {});
+		availableActions
+				.put(Mood.NEUTRAL, new Action[] { new Inform(), new Introduce(), new ChangeMood() });
+		availableActions
+				.put(Mood.HOMICIDAL, new Action[] { new Murder(), new ChangeMood() });
+	}
 
 	public void updatePeople(Person[] people) {
 		for (Person p : people) {
-			int offset = new Random().nextInt(availableActions.length);
-			if (r.nextDouble() > .75 && availableActions[offset].validAction(p)) {
-				p.addAction(availableActions[offset]);
-			}
 			p.update();
+			if (p.getMood() == Mood.DEAD) {
+				continue;
+			}
+			int offset = new Random().nextInt(availableActions.get(p.getMood()).length);
+			if (r.nextDouble() > .75) {
+				p.addAction(availableActions.get(p.getMood())[offset]);
+			}
 		}
 	}
 
@@ -49,7 +75,7 @@ public class PersonManager {
 	 * @param target
 	 */
 	public void inform(Person listener, Person teller, Person target) {
-		LOGGER.info("informing {} about {}", listener.getName(), target.getName());
+		LOGGER.trace("informing {} about {}", listener.getName(), target.getName());
 		Opinion listenerOfTeller = listener.getOpinions().get(teller);
 		Opinion listenerOfTarget = listener.getOpinions().get(target);
 		Opinion tellerOfTarget = teller.getOpinions().get(target);

@@ -27,6 +27,10 @@ public class Opinion {
 
 	}
 
+	public boolean isTouchable() {
+		return awareness < 4;
+	}
+
 	public Opinion(float approval, int awareness) {
 		setApproval(approval);
 		setAwareness(awareness);

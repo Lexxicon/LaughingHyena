@@ -4,8 +4,10 @@
 package com.biotech.bastard;
 
 import java.awt.Point;
+import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Stack;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -13,12 +15,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import processing.core.PApplet;
+import processing.core.PImage;
 
 import com.biotech.bastard.animations.Animation;
 import com.biotech.bastard.animations.SelectionPing;
 import com.biotech.bastard.cards.Card;
 import com.biotech.bastard.cards.Deck;
 import com.biotech.bastard.cards.PlayField;
+import com.biotech.bastard.people.Mood;
 import com.biotech.bastard.people.Opinion;
 import com.biotech.bastard.people.Person;
 import com.biotech.bastard.people.PersonManager;
@@ -47,6 +51,8 @@ public class ManipulativeBastard extends PApplet {
 	public static final Color RED = new Color(255, 0, 0, 255);
 	public static final Color GREEN = new Color(0, 255, 0, 255);
 	public static final Color BLUE = new Color(0, 0, 255, 255);
+
+	public static final Map<Mood, PImage> moodIcon = new EnumMap<>(Mood.class);
 
 	// used to ensure mouse handling;
 	boolean mPress, lPress, rPress;
@@ -91,7 +97,16 @@ public class ManipulativeBastard extends PApplet {
 		for (int i = 0; i < 5; i++) {
 			field.drawCard();
 		}
+		loadMoodIcons();
 		smooth();
+	}
+
+	private void loadMoodIcons() {
+		moodIcon.put(Mood.ANGRY, loadImage("emoticonMad.png"));
+		moodIcon.put(Mood.HAPPY, loadImage("emoticonHappy.png"));
+		moodIcon.put(Mood.HOMICIDAL, loadImage("emoticonHOMICIDAL.png"));
+		moodIcon.put(Mood.NEUTRAL, loadImage("emoticonNeutral.png"));
+		moodIcon.put(Mood.DEAD, loadImage("emoticonDEAD.png"));
 	}
 
 	private List<Card> buildDeck() {
@@ -174,7 +189,7 @@ public class ManipulativeBastard extends PApplet {
 			break;
 		case TARGET:
 			state = GameState.INSPECT;
-			if (selectPerson()) {
+			if (selectPerson() && targetPerson.getMood() != Mood.DEAD) {
 				field.playCard(selectedCard, targetPerson);
 				manager.updatePeople(people);
 			}
@@ -258,8 +273,10 @@ public class ManipulativeBastard extends PApplet {
 		for (Person person : people) {
 			person.draw(Integer.MAX_VALUE);
 		}
+		targetPerson.highlight();
 
 		manager.drawPerson(this, targetPerson);
+		targetPerson.drawNames();
 		manager.drawInfoPane(this, width - 200, 0, targetPerson);
 
 		for (ScreenHotspot hs : hostspots) {

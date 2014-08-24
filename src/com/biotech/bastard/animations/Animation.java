@@ -40,6 +40,7 @@ public abstract class Animation {
 	public final void draw() {
 		if (!isDone) {
 			getParent().pushMatrix();
+			getParent().pushStyle();
 
 			getParent().translate(getLocation().x, getLocation().y);
 			update();
@@ -63,6 +64,7 @@ public abstract class Animation {
 			}
 
 			getParent().popMatrix();
+			getParent().popStyle();
 		}
 	}
 

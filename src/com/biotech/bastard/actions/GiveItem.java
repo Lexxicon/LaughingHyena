@@ -8,6 +8,11 @@ import java.util.Random;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import processing.core.PApplet;
+
+import com.biotech.bastard.Color;
+import com.biotech.bastard.animations.Animation;
+import com.biotech.bastard.animations.SelectionPing;
 import com.biotech.bastard.cards.Action;
 import com.biotech.bastard.people.Item;
 import com.biotech.bastard.people.Person;
@@ -54,5 +59,20 @@ public class GiveItem extends Action {
 
 	public void setItem(Item item) {
 		this.item = item;
+	}
+
+	/*
+	 * @see
+	 * com.biotech.bastard.cards.Action#getAnimation(processing.core.PApplet,
+	 * com.biotech.bastard.people.Person)
+	 */
+	@Override
+	public Animation getAnimation(PApplet p, Person person) {
+		Color start = new Color(255, 255, 255, 255);
+		Color target = new Color(129, 200, 239, 255);
+
+		SelectionPing pg = new SelectionPing(p, 40, Person.DIAMITER, Person.DIAMITER + 10, start, target);
+		pg.setLocation(person.getLocation());
+		return pg;
 	}
 }

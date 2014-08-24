@@ -10,6 +10,9 @@ import java.util.Random;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import processing.core.PApplet;
+
+import com.biotech.bastard.animations.Animation;
 import com.biotech.bastard.cards.Action;
 import com.biotech.bastard.people.Opinion;
 import com.biotech.bastard.people.Person;
@@ -78,7 +81,7 @@ public class Introduce extends Action {
 		if (!validAction(person)) {
 			return;
 		}
-		LOGGER.info("{} is introducing {} to {}", person.getName(), subject.getName(), listener.getName());
+		LOGGER.trace("{} is introducing {} to {}", person.getName(), subject.getName(), listener.getName());
 
 		PersonManager manager = new PersonManager();
 		manager.introduce(listener, person, subject);
@@ -117,7 +120,7 @@ public class Introduce extends Action {
 				}
 			}
 			if (listener == null) {
-				LOGGER.warn("Failed to inform, doesn't know anyone");
+				LOGGER.trace("Failed to inform, doesn't know anyone");
 				return false;
 			}
 		}
@@ -135,7 +138,7 @@ public class Introduce extends Action {
 					}
 				}
 				if (subject == null) {
-					LOGGER.warn("Failed to gossip about someone, no one disliked");
+					LOGGER.trace("Failed to gossip about someone, no one disliked");
 					return false;
 				}
 				break;
@@ -149,7 +152,7 @@ public class Introduce extends Action {
 					}
 				}
 				if (subject == null) {
-					LOGGER.warn("Failed to praise someone, no one praiseworthy");
+					LOGGER.trace("Failed to praise someone, no one praiseworthy");
 					return false;
 				}
 				break;
@@ -169,5 +172,16 @@ public class Introduce extends Action {
 	public String getName() {
 		// TODO Auto-generated method stub
 		return "Introduce to " + type;
+	}
+
+	/*
+	 * @see
+	 * com.biotech.bastard.cards.Action#getAnimation(processing.core.PApplet,
+	 * com.biotech.bastard.people.Person)
+	 */
+	@Override
+	public Animation getAnimation(PApplet p, Person person) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

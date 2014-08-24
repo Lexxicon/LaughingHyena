@@ -5,7 +5,7 @@ package com.biotech.bastard.cards;
 
 import processing.core.PApplet;
 
-import com.biotech.bastard.people.Person;
+import com.biotech.bastard.actions.ChangeMood;
 
 /**
  * Created: Aug 24, 2014
@@ -14,6 +14,8 @@ import com.biotech.bastard.people.Person;
  *
  */
 public class MoodChangeCard extends Card {
+
+	ChangeMood mc = new ChangeMood();
 
 	/**
 	 * 
@@ -27,27 +29,7 @@ public class MoodChangeCard extends Card {
 	 */
 	@Override
 	public Action getAction() {
-		// TODO Auto-generated method stub
-		return new Action() {
-
-			@Override
-			public boolean validAction(Person person) {
-				// TODO Auto-generated method stub
-				return false;
-			}
-
-			@Override
-			public void performAction(Person person) {
-				// TODO Auto-generated method stub
-
-			}
-
-			@Override
-			public String getName() {
-				// TODO Auto-generated method stub
-				return "Mood Change";
-			}
-		};
+		return mc;
 	}
 
 	/*
