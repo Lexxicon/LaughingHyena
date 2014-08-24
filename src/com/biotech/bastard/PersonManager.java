@@ -100,9 +100,9 @@ public class PersonManager {
 			stillOverlap = false;
 			for (int i = 0; i < persons.length; i++) {
 				overlapping.clear();
-				Point firstPerson = persons[i].location;
+				Point firstPerson = persons[i].getLocation();
 				for (int j = i + 1; j < persons.length; j++) {
-					Point secondPerson = persons[j].location;
+					Point secondPerson = persons[j].getLocation();
 
 					if (Util.distance(firstPerson.x, firstPerson.y, secondPerson.x, secondPerson.y) < Person.DIAMITER) {
 						stillOverlap = true;
@@ -111,16 +111,16 @@ public class PersonManager {
 				}
 				for (Person over : overlapping) {
 					float deltaX, deltaY;
-					deltaX = over.location.x - firstPerson.x;
-					deltaY = over.location.y - firstPerson.y;
+					deltaX = over.getLocation().x - firstPerson.x;
+					deltaY = over.getLocation().y - firstPerson.y;
 
 					float rads = (float) Math.atan2(deltaY, deltaX);
 					if (!Float.isNaN(rads)) {
-						float distace = Util.distance(firstPerson.x, firstPerson.y, over.location.x, over.location.y);
+						float distace = Util.distance(firstPerson.x, firstPerson.y, over.getLocation().x, over.getLocation().y);
 						distace *= 1.5;
-						over.location.x = (int) (Util.clamp(over.location.x
+						over.getLocation().x = (int) (Util.clamp(over.getLocation().x
 								+ (float) (Math.cos(rads) * distace), x, x + w));
-						over.location.y = (int) (Util.clamp(over.location.y
+						over.getLocation().y = (int) (Util.clamp(over.getLocation().y
 								+ (float) (Math.sin(rads) * distace), y, y + h));
 					}
 				}

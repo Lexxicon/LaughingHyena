@@ -4,7 +4,9 @@
 package com.biotech.bastard;
 
 import java.awt.Point;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 
@@ -13,6 +15,8 @@ import org.slf4j.LoggerFactory;
 
 import processing.core.PApplet;
 
+import com.biotech.bastard.animations.Animation;
+import com.biotech.bastard.animations.SelectionPing;
 import com.biotech.bastard.cards.Action;
 
 /**
@@ -40,6 +44,9 @@ public class ManipulativeBastard extends PApplet {
 	Point center;
 	int radius = 300;
 	PersonManager manager = new PersonManager();
+	List<Animation> animations = new ArrayList<>();
+
+	SelectionPing selectionPing;
 
 	/*
 	 * @see processing.core.PApplet#setup()
@@ -48,10 +55,17 @@ public class ManipulativeBastard extends PApplet {
 	public void setup() {
 		LOGGER.info("Setting up application");
 		size(1200, 800);
+		frameRate(60);
 		center = new Point(600, 400);
-		people = makePeople(70);
+		people = makePeople(40);
 		targetPerson = people[0];
-		noLoop();
+		selectionPing = new SelectionPing(this,
+				35, 50, 90,
+				new Color(255, 255, 255, 255),
+				new Color(200, 200, 150, 150));
+
+		animations.add(selectionPing);
+		updatePeople();
 		smooth();
 	}
 
@@ -94,14 +108,14 @@ public class ManipulativeBastard extends PApplet {
 	}
 
 	private void setLocationRandom(Person p) {
-		p.location.x = (int) (random(-radius, radius) + center.x);
-		p.location.y = (int) (random(-radius, radius) + center.y);
+		p.getLocation().x = (int) (random(-radius, radius) + center.x);
+		p.getLocation().y = (int) (random(-radius, radius) + center.y);
 	}
 
 	private void setLocationCircle(Person p, int index, int max) {
 		float rads = radians(map(index, 0, max, 0, 359));
-		p.location.x = (int) (Math.sin(rads) * radius + center.x);
-		p.location.y = (int) (Math.cos(rads) * radius + center.y);
+		p.getLocation().x = (int) (Math.sin(rads) * radius + center.x);
+		p.getLocation().y = (int) (Math.cos(rads) * radius + center.y);
 	}
 
 	public int rInt(int upper) {
@@ -115,12 +129,22 @@ public class ManipulativeBastard extends PApplet {
 	public void mouseClicked() {
 		for (Person pep : people) {
 			if (pep.isPointWithin(mouseX, mouseY)) {
+				if (pep != targetPerson) {
+					selectionPing.setLocation(pep.getLocation());
+					selectionPing.restart();
+				}
 				targetPerson = pep;
 				break;
 			}
 		}
+		updatePeople();
+	}
 
-		redraw();
+	private void updatePeople() {
+		for (Person pep : people) {
+			pep.setDistance(Integer.MAX_VALUE);
+		}
+		updateDistance(targetPerson);
 	}
 
 	/*
@@ -130,6 +154,9 @@ public class ManipulativeBastard extends PApplet {
 	public void draw() {
 		background(0);
 		drawnPeople.clear();
+		for (Animation a : animations) {
+			a.draw();
+		}
 
 		targetPerson.drawOpinionLines();
 		drawPerson(targetPerson);
@@ -139,11 +166,6 @@ public class ManipulativeBastard extends PApplet {
 	}
 
 	private void drawPerson(Person person) {
-
-		for (Person pep : people) {
-			pep.setDistance(Integer.MAX_VALUE);
-		}
-		updateDistance(person);
 
 		for (Person pep : people) {
 			pep.draw(pep.getDistance());

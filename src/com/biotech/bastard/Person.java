@@ -40,7 +40,9 @@ public class Person {
 
 	PApplet parrent;
 
-	Point location, size;
+	private Point location;
+
+	Point size;
 
 	final private Map<Person, Opinion> opinions;
 
@@ -53,7 +55,7 @@ public class Person {
 
 	public Person(PApplet parrent) {
 		opinions = new LinkedHashMap<>();
-		location = new Point();
+		setLocation(new Point());
 		actionStack = new Stack<Action>();
 		this.inventory = new EnumMap<>(Item.class);
 		this.size = new Point(DIAMITER, DIAMITER);
@@ -85,7 +87,7 @@ public class Person {
 
 		parrent.fill(fill.r, fill.g, fill.b, fill.a);
 		parrent.stroke(border.r, border.b, border.g, border.a);
-		parrent.ellipse(location.x, location.y, size.x, size.y);
+		parrent.ellipse(getLocation().x, getLocation().y, size.x, size.y);
 	}
 
 	public void drawOpinionLines() {
@@ -97,7 +99,7 @@ public class Person {
 			float a = PApplet.map(PApplet.constrain(opinions.get(child).getAwareness(), 1, 7), 1, 7, 255, 0);
 
 			parrent.stroke(r, Math.min(r, b), b, a);
-			parrent.line(location.x, location.y, child.location.x, child.location.y);
+			parrent.line(getLocation().x, getLocation().y, child.getLocation().x, child.getLocation().y);
 		}
 	}
 
@@ -128,7 +130,7 @@ public class Person {
 	}
 
 	public boolean isPointWithin(int x, int y) {
-		if (Util.distance(location.x, location.y, x, y) < DIAMITER / 2) {
+		if (Util.distance(getLocation().x, getLocation().y, x, y) < DIAMITER / 2) {
 			return true;
 		}
 		return false;
@@ -144,5 +146,13 @@ public class Person {
 
 	public Map<Person, Opinion> getOpinions() {
 		return opinions;
+	}
+
+	public Point getLocation() {
+		return location;
+	}
+
+	public void setLocation(Point location) {
+		this.location = location;
 	}
 }
