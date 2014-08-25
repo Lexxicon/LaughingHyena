@@ -32,10 +32,10 @@ public class Color {
 	public static Color[] createGradiant(Color c1, Color c2, int steps) {
 		Color[] gradiant = new Color[steps];
 		for (int i = 0; i < steps; i++) {
-			int r = (int) PApplet.map(i, 0, steps, c1.r, c2.r);
-			int g = (int) PApplet.map(i, 0, steps, c1.g, c2.g);
-			int b = (int) PApplet.map(i, 0, steps, c1.b, c2.b);
-			float a = PApplet.map(i, 0, steps, c1.a, c2.a);
+			int r = (int) PApplet.map(i, 0, steps - 1, c1.r, c2.r);
+			int g = (int) PApplet.map(i, 0, steps - 1, c1.g, c2.g);
+			int b = (int) PApplet.map(i, 0, steps - 1, c1.b, c2.b);
+			float a = PApplet.map(i, 0, steps - 1, c1.a, c2.a);
 
 			gradiant[i] = new Color(r, g, b, a);
 		}

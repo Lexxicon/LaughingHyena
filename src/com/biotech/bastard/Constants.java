@@ -3,7 +3,6 @@
  */
 package com.biotech.bastard;
 
-
 /**
  * Created: Aug 23, 2014
  * 
@@ -28,4 +27,8 @@ public class Constants {
 			"Keturah", "Kezia", "Leah", "Mara", "Mehetabel", "Miriam", "Naomi", "Rebecca", "Rebekah", "Rachel",
 			"Rachael", "Ruth", "Sarah", "Zillah", "Zilpah"
 	};
+
+	public static String[][] detailedFaces = {
+			{ "male_white_red_happy.png", "male_white_red_angry.png", "male_white_red_homicidal.png", "red_neut.png",
+					"red_neut.png" } };
 }

@@ -5,6 +5,7 @@ package com.biotech.bastard.people;
 
 import java.awt.Point;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Stack;
@@ -14,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import processing.core.PApplet;
+import processing.core.PImage;
 
 import com.biotech.bastard.Color;
 import com.biotech.bastard.Constants;
@@ -37,7 +39,7 @@ public class Person {
 	public static final Color[] heatColor = Color.createGradiant(
 			new Color(128, 75, 165, 255),
 			new Color(250, 250, 250, 000),
-			10);
+			4);
 
 	public static int DIAMITER = 50;
 
@@ -48,7 +50,7 @@ public class Person {
 	private Point location;
 
 	Point size;
-
+	final Map<Mood, PImage> hiRes = new HashMap<>();
 	final private Map<Person, Opinion> opinions;
 
 	private final String name;
@@ -63,7 +65,13 @@ public class Person {
 		this.inventory = new EnumMap<>(Item.class);
 		this.size = new Point(DIAMITER, DIAMITER);
 		this.parrent = parrent;
-		this.name = Constants.names[(counter.incrementAndGet() * 3) % Constants.names.length];
+		int c = counter.incrementAndGet();
+		this.name = Constants.names[(c * 3) % Constants.names.length];
+		for (int i = 0; i < Mood.values().length; i++) {
+			hiRes.put(
+					Mood.values()[i],
+					parrent.loadImage(Constants.detailedFaces[c % Constants.detailedFaces.length][i]));
+		}
 
 		for (Item item : Item.values()) {
 			inventory.put(item, 0);
@@ -132,17 +140,27 @@ public class Person {
 		parrent.popStyle();
 	}
 
-	public void drawOpinionLines() {
-		if (mood == Mood.DEAD) {
+	public void drawOpinionLines(int steps, int count) {
+		if (mood == Mood.DEAD || steps < count) {
 			return;
 		}
+		parrent.pushStyle();
+		parrent.strokeWeight(steps * 2 - 1);
 		for (Person child : getOpinions().keySet()) {
 			int r = (int) PApplet.map(opinions.get(child).getApproval(), -1, 1, 255, 0);
 			int b = (int) PApplet.map(opinions.get(child).getApproval(), -1, 1, 0, 255);
-			float a = 255;
+			float a = (float) (255 * (steps * 1.0 / count * 1.0));
 			parrent.stroke(r, Math.min(r, b), b, a);
-			parrent.line(getLocation().x, getLocation().y, child.getLocation().x, child.getLocation().y);
+			parrent.fill(0, 0);
+			parrent.curve(getLocation().x, getLocation().y - 200,
+					getLocation().x, getLocation().y,
+					child.getLocation().x, child.getLocation().y,
+					child.getLocation().x, child.getLocation().y + 200);
+			child.drawOpinionLines(steps - 1, count);
+			// parrent.line(getLocation().x, getLocation().y,
+			// child.getLocation().x, child.getLocation().y);
 		}
+		parrent.popStyle();
 	}
 
 	public void drawKnownBy(Person[] people) {

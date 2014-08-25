@@ -282,12 +282,17 @@ public class ManipulativeBastard extends PApplet {
 
 		drawnPeople.clear();
 		targetPerson.highlight();
+
+		if (frameCount % 1 == 0) {
+			manager.updatePeople(people);
+		}
+
 		for (Animation a : animations) {
 			a.draw();
 		}
 
 		if (drawKnown) {
-			selectedPerson.drawOpinionLines();
+			selectedPerson.drawOpinionLines(2, 2);
 		} else {
 			selectedPerson.drawKnownBy(people);
 		}

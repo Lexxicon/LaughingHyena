@@ -13,9 +13,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import processing.core.PApplet;
+import processing.core.PImage;
 
 import com.biotech.bastard.Util;
 import com.biotech.bastard.actions.ChangeMood;
+import com.biotech.bastard.actions.GiveItem;
 import com.biotech.bastard.actions.Inform;
 import com.biotech.bastard.actions.Introduce;
 import com.biotech.bastard.actions.Murder;
@@ -44,7 +46,7 @@ public class PersonManager {
 		availableActions
 				.put(Mood.ANGRY, new Action[] { new Inform(), new Introduce(), new ChangeMood() });
 		availableActions
-				.put(Mood.HAPPY, new Action[] { new Inform(), new Introduce(), new ChangeMood() });
+				.put(Mood.HAPPY, new Action[] { new Inform(), new Introduce(), new ChangeMood(), new GiveItem() });
 		availableActions
 				.put(Mood.DEAD, new Action[] {});
 		availableActions
@@ -60,7 +62,7 @@ public class PersonManager {
 				continue;
 			}
 			int offset = new Random().nextInt(availableActions.get(p.getMood()).length);
-			if (r.nextDouble() > .75) {
+			if (r.nextDouble() > .0) {
 				p.addAction(availableActions.get(p.getMood())[offset]);
 			}
 		}
@@ -165,7 +167,7 @@ public class PersonManager {
 		int padding = 15;
 		int w = 200;
 		int h = 400;
-
+		p.pushStyle();
 		p.pushMatrix();
 		{
 			p.translate(x, y);
@@ -204,7 +206,10 @@ public class PersonManager {
 				}
 			}
 			p.popMatrix();
+			PImage image = targetPerson.hiRes.get(targetPerson.getMood());
+			p.image(image, image.width / 4, h - image.height);
 		}
+		p.popStyle();
 		p.popMatrix();
 	}
 

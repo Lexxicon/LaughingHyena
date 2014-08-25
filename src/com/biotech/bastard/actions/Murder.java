@@ -37,7 +37,7 @@ public class Murder extends Action {
 		Person target = null;
 		float min = Float.MAX_VALUE;
 		for (Person relation : person.getOpinions().keySet()) {
-			if (person.getOpinions().get(relation).isTouchable()) {
+			if (person.getOpinions().get(relation).isTouchable() && person.getMood() != Mood.DEAD) {
 				if (min < person.getOpinions().get(relation).getApproval() || target == null) {
 					target = relation;
 					min = person.getOpinions().get(relation).getApproval();
@@ -46,10 +46,11 @@ public class Murder extends Action {
 		}
 
 		if (target == null) {
+
 			target = person;
 		}
 
-		LOGGER.info("MURDER {} by {}", target.getName(), person.getName());
+		LOGGER.info(" {} Murdered by {}", target.getName(), person.getName());
 		person.getInventory().put(Item.WEAPON, person.getInventory().get(Item.WEAPON) - 1);
 		target.setMood(Mood.DEAD);
 	}
@@ -61,7 +62,6 @@ public class Murder extends Action {
 	 */
 	@Override
 	public boolean validAction(Person person) {
-		LOGGER.info("Request for murder!");
 		if (person == null) {
 			LOGGER.info("Failed because null");
 			return false;
