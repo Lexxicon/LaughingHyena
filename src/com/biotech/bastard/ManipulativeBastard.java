@@ -8,6 +8,7 @@ import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Stack;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -60,8 +61,10 @@ public class ManipulativeBastard extends PApplet {
 	GameState state = GameState.INSPECT;
 
 	Card selectedCard = null;
+	boolean drawKnown = true;
 
 	Person[] people;
+	Person selectedPerson;
 	Person targetPerson;
 	HashSet<Person> drawnPeople = new HashSet<>();
 	Point center;
@@ -84,7 +87,8 @@ public class ManipulativeBastard extends PApplet {
 		frameRate(60);
 		center = new Point(600, 400);
 		people = makePeople(40);
-		targetPerson = people[0];
+		selectedPerson = people[0];
+		targetPerson = people[new Random().nextInt(people.length)];
 		selectionPing = new SelectionPing(this,
 				35, 50, 90,
 				WHITE,
@@ -189,8 +193,8 @@ public class ManipulativeBastard extends PApplet {
 			break;
 		case TARGET:
 			state = GameState.INSPECT;
-			if (selectPerson() && targetPerson.getMood() != Mood.DEAD) {
-				field.playCard(selectedCard, targetPerson);
+			if (selectPerson() && selectedPerson.getMood() != Mood.DEAD) {
+				field.playCard(selectedCard, selectedPerson);
 				manager.updatePeople(people);
 			}
 			Card.selected = null;
@@ -234,11 +238,16 @@ public class ManipulativeBastard extends PApplet {
 
 		for (Person pep : people) {
 			if (pep.isPointWithin(mouseX, mouseY)) {
-				if (pep != targetPerson) {
+				if (pep != selectedPerson) {
 					selectionPing.setLocation(pep.getLocation());
 					selectionPing.restart();
 				}
-				targetPerson = pep;
+				if (pep == selectedPerson) {
+					drawKnown = !drawKnown;
+				} else {
+					drawKnown = true;
+				}
+				selectedPerson = pep;
 				return true;
 			}
 		}
@@ -263,21 +272,38 @@ public class ManipulativeBastard extends PApplet {
 	@Override
 	public void draw() {
 		background(0);
-		drawnPeople.clear();
+		String known = "Showing who the selection knows";
+		String unknown = "Showing who knows the selection ";
+		if (drawKnown) {
+			text(known, center.x - textWidth(known) / 2, 50);
+		} else {
+			text(unknown, center.x - textWidth(unknown) / 2, 50);
+		}
 
+		drawnPeople.clear();
+		targetPerson.highlight();
 		for (Animation a : animations) {
 			a.draw();
 		}
 
-		targetPerson.drawOpinionLines();
+		if (drawKnown) {
+			selectedPerson.drawOpinionLines();
+		} else {
+			selectedPerson.drawKnownBy(people);
+		}
 		for (Person person : people) {
 			person.draw(Integer.MAX_VALUE);
 		}
-		targetPerson.highlight();
 
-		manager.drawPerson(this, targetPerson);
-		targetPerson.drawNames();
-		manager.drawInfoPane(this, width - 200, 0, targetPerson);
+		fill(255, 255, 255, 128);
+		stroke(255, 255, 255, 128);
+		for (Person person : people) {
+			person.drawName();
+		}
+
+		manager.drawPerson(this, selectedPerson);
+		selectedPerson.drawNames();
+		manager.drawInfoPane(this, width - 200, 0, selectedPerson);
 
 		for (ScreenHotspot hs : hostspots) {
 			hs.draw(this);

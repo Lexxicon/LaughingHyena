@@ -63,7 +63,7 @@ public class Person {
 		this.inventory = new EnumMap<>(Item.class);
 		this.size = new Point(DIAMITER, DIAMITER);
 		this.parrent = parrent;
-		this.name = Constants.names[counter.incrementAndGet()];
+		this.name = Constants.names[(counter.incrementAndGet() * 3) % Constants.names.length];
 
 		for (Item item : Item.values()) {
 			inventory.put(item, 0);
@@ -111,19 +111,23 @@ public class Person {
 
 		parrent.fill(255, 255, 255, 255);
 		parrent.stroke(255, 255, 255, 255);
-		parrent.text(name, getLocation().x - parrent.textWidth(name) / 2, getLocation().y);
+		drawName();
 		for (Person child : getOpinions().keySet()) {
-			parrent.text(
-					child.getName(),
-					child.getLocation().x - parrent.textWidth(child.name) / 2,
-					child.getLocation().y);
+			child.drawName();
 		}
+	}
+
+	public void drawName() {
+		parrent.text(
+				getName(),
+				getLocation().x - parrent.textWidth(getName()) / 2,
+				getLocation().y);
 	}
 
 	public void highlight() {
 		parrent.pushStyle();
 		parrent.stroke(0, 0);
-		parrent.fill(255, 255, 255, Math.abs((parrent.frameCount % 512) - 256));
+		parrent.fill(126, 000, 000, Math.abs((parrent.frameCount % 128) - 62) + 128);
 		parrent.ellipse(getLocation().x, getLocation().y, DIAMITER + 10, DIAMITER + 10);
 		parrent.popStyle();
 	}
@@ -138,6 +142,20 @@ public class Person {
 			float a = 255;
 			parrent.stroke(r, Math.min(r, b), b, a);
 			parrent.line(getLocation().x, getLocation().y, child.getLocation().x, child.getLocation().y);
+		}
+	}
+
+	public void drawKnownBy(Person[] people) {
+		for (Person p : people) {
+			for (Person rel : p.getOpinions().keySet()) {
+				if (rel == this) {
+					int r = (int) PApplet.map(p.opinions.get(this).getApproval(), -1, 1, 255, 0);
+					int b = (int) PApplet.map(p.opinions.get(this).getApproval(), -1, 1, 0, 255);
+					float a = 255;
+					parrent.stroke(r, Math.min(r, b), b, a);
+					parrent.line(getLocation().x, getLocation().y, p.getLocation().x, p.getLocation().y);
+				}
+			}
 		}
 	}
 
